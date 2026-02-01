@@ -1,0 +1,9 @@
+{
+    "ignore": [
+        "*.txt",
+        "*.log",
+        "api_logs.txt",
+        "error_log.txt"
+    ],
+    "ext": "js,json"
+}

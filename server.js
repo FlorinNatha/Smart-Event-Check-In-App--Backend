@@ -13,6 +13,12 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Log all requests
+app.use((req, res, next) => {
+    console.log(`📡 Request: ${req.method} ${req.originalUrl}`);
+    next();
+});
+
 // Database Connection
 mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('✅ MongoDB Connected'))
@@ -21,6 +27,8 @@ mongoose.connect(process.env.MONGODB_URI)
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/events', require('./routes/eventRoutes'));
+// Fallback for frontend calling /api/admin/events
+app.use('/api/admin/events', require('./routes/eventRoutes'));
 
 app.get('/', (req, res) => {
     res.send('Smart Event Check-in API is Running');

@@ -47,11 +47,26 @@ mongoose.connect(process.env.MONGODB_URI)
         console.log('✅ MongoDB Connected');
 
         try {
-            // Get the first user as organizer (likely the one you just created)
-            const admin = await User.findOne();
+            // Create or Get Admin User
+            let admin = await User.findOne({ email: 'admin@example.com' });
+
             if (!admin) {
-                console.log('❌ No users found. Please register a user first.');
-                process.exit(1);
+                console.log('👤 Creating Admin User...');
+                admin = await User.create({
+                    name: 'Admin User',
+                    email: 'admin@example.com',
+                    password: 'password123', // Will be hashed by pre-save hook
+                    role: 'admin'
+                });
+                console.log('✅ Created Admin: admin@example.com / password123');
+            } else {
+                console.log('👤 Found Admin User: admin@example.com');
+                // Ensure role is admin
+                if (admin.role !== 'admin') {
+                    admin.role = 'admin';
+                    await admin.save();
+                    console.log('🔄 Updated user role to admin');
+                }
             }
 
             console.log(`👤 Using Organizer: ${admin.name} (${admin.email})`);
