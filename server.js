@@ -30,6 +30,10 @@ app.use('/api/events', require('./routes/eventRoutes'));
 // Fallback for frontend calling /api/admin/events
 app.use('/api/admin/events', require('./routes/eventRoutes'));
 
+// Attendee Routes
+app.use('/api/registrations', require('./routes/registrationRoutes'));
+app.use('/api/users', require('./routes/userRoutes'));
+
 app.get('/', (req, res) => {
     res.send('Smart Event Check-in API is Running');
 });
