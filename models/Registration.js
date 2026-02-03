@@ -23,6 +23,10 @@ const registrationSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+    checkedInBy: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    },
 });
 
 // Prevent duplicate registration
