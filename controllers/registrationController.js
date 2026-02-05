@@ -73,6 +73,8 @@ exports.getTicketById = async (req, res) => {
             .populate('event')
             .populate('user', 'name email');
 
+        console.log(`🎫 getTicketById:`, JSON.stringify(registration, null, 2));
+
         if (!registration) {
             return res.status(404).json({ message: 'Ticket not found' });
         }
@@ -129,6 +131,10 @@ exports.validateTicket = async (req, res) => {
 
         // Verify it belongs to the correct event
         if (registration.event.toString() !== eventId) {
+            console.log(`❌ Validation Failed: Event Mismatch`);
+            console.log(`Expected (Ticket Event): '${registration.event.toString()}'`);
+            console.log(`Received (Request Event): '${eventId}'`);
+            console.log('Request Body:', JSON.stringify(req.body)); // Typo risk, just JSON.stringify
             return res.status(400).json({ message: 'Ticket does not belong to this event' });
         }
 
