@@ -87,10 +87,38 @@ exports.updateEvent = async (req, res) => {
         const event = await Event.findById(req.params.id);
 
         if (event) {
-            const updatedEvent = await Event.findByIdAndUpdate(req.params.id, req.body, {
+            console.log('🔄 Update Event Request Body:', req.body);
+
+            let updateData = { ...req.body };
+
+            // ADAPTATION: Handle Legacy/Alternative Date Formats 
+            // If date/startTime/endTime are missing but startDate/endDate exist
+            if (!updateData.date && updateData.startDate) {
+                console.log('⚠️ Adapting Legacy Format in Update');
+                updateData.date = updateData.startDate;
+
+                if (!updateData.startTime) {
+                    const startObj = new Date(updateData.startDate);
+                    updateData.startTime = `${startObj.getHours().toString().padStart(2, '0')}:${startObj.getMinutes().toString().padStart(2, '0')}`;
+                }
+
+                if (!updateData.endTime && updateData.endDate) {
+                    const endObj = new Date(updateData.endDate);
+                    updateData.endTime = `${endObj.getHours().toString().padStart(2, '0')}:${endObj.getMinutes().toString().padStart(2, '0')}`;
+                }
+            }
+
+            // Ensure values are not null/undefined if we want to update them
+            // If they are passed as null strings from some forms
+            if (updateData.startTime === 'null') delete updateData.startTime;
+            if (updateData.endTime === 'null') delete updateData.endTime;
+
+            const updatedEvent = await Event.findByIdAndUpdate(req.params.id, updateData, {
                 new: true,
                 runValidators: true
             });
+
+            console.log('✅ Event Updated:', updatedEvent);
             res.json(updatedEvent);
         } else {
             res.status(404).json({ message: 'Event not found' });

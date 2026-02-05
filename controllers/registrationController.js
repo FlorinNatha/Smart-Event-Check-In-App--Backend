@@ -129,12 +129,12 @@ exports.validateTicket = async (req, res) => {
             return res.status(404).json({ message: 'Invalid Ticket' });
         }
 
-        // Verify it belongs to the correct event
-        if (registration.event.toString() !== eventId) {
+        // Verify it belongs to the correct event (Only if eventId is provided)
+        if (eventId && registration.event.toString() !== eventId) {
             console.log(`❌ Validation Failed: Event Mismatch`);
             console.log(`Expected (Ticket Event): '${registration.event.toString()}'`);
             console.log(`Received (Request Event): '${eventId}'`);
-            console.log('Request Body:', JSON.stringify(req.body)); // Typo risk, just JSON.stringify
+            console.log('Request Body:', JSON.stringify(req.body));
             return res.status(400).json({ message: 'Ticket does not belong to this event' });
         }
 
