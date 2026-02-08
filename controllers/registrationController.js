@@ -185,3 +185,26 @@ exports.getStaffScanHistory = async (req, res) => {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
+
+// @desc    Get staff stats (today's scans)
+// @route   GET /api/registrations/staff/stats
+// @access  Private (Staff/Admin)
+exports.getStaffStats = async (req, res) => {
+    try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const todayScans = await Registration.countDocuments({
+            checkedInBy: req.user._id,
+            checkedInAt: { $gte: today },
+            status: 'checked-in'
+        });
+
+        res.json({
+            todayScans
+        });
+    } catch (error) {
+        console.error('Error fetching staff stats:', error);
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
