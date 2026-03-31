@@ -207,3 +207,19 @@ exports.getEventRegistrations = async (req, res) => {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 };
+
+// @desc    Get ALL global registrations (useful for home dashboard grouping)
+// @route   GET /api/events/admin/all-registrations
+// @access  Private (Admin only)
+exports.getAllRegistrations = async (req, res) => {
+    try {
+        const registrations = await Registration.find()
+            .populate('user', 'name email')
+            .populate('event', 'name date')
+            .sort({ registeredAt: -1 });
+
+        res.json(registrations);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+};
