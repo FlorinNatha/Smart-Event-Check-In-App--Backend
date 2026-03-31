@@ -10,7 +10,8 @@ const {
     deleteEvent,
     getDashboardStats,
     getEventStats,
-    getEventRegistrations
+    getEventRegistrations,
+    getAllRegistrations
 } = require('../controllers/eventController');
 const { registerForEvent } = require('../controllers/registrationController');
 
@@ -19,6 +20,7 @@ router.post('/', protect, admin, createEvent);
 
 // Admin Stats Routes (Must be before /:id)
 router.get('/admin/stats', protect, admin, getDashboardStats);
+router.get('/admin/all-registrations', protect, admin, getAllRegistrations);
 
 router.get('/:id', getEventById);
 router.put('/:id', protect, admin, updateEvent);

@@ -7,10 +7,12 @@ const {
     getTicketById,
     cancelRegistration,
     validateTicket,
-    getStaffScanHistory
+    getStaffScanHistory,
+    getStaffStats
 } = require('../controllers/registrationController');
 
 router.post('/validate', protect, validateTicket);
+router.get('/staff/stats', protect, getStaffStats);
 router.get('/staff/history', protect, getStaffScanHistory);
 router.post('/:eventId', protect, registerForEvent);
 router.get('/my-tickets', protect, getMyRegistrations);
