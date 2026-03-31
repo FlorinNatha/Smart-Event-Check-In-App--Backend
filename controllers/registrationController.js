@@ -79,8 +79,12 @@ exports.getTicketById = async (req, res) => {
             return res.status(404).json({ message: 'Ticket not found' });
         }
 
-        // Ensure user owns the ticket or is admin
-        if (registration.user._id.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        // Ensure user owns the ticket, or is admin/staff
+        if (
+            registration.user._id.toString() !== req.user._id.toString() &&
+            req.user.role !== 'admin' &&
+            req.user.role !== 'staff'
+        ) {
             return res.status(401).json({ message: 'Not authorized to view this ticket' });
         }
 
@@ -132,9 +136,6 @@ exports.validateTicket = async (req, res) => {
         // Verify it belongs to the correct event (Only if eventId is provided)
         if (eventId && registration.event.toString() !== eventId) {
             console.log(`❌ Validation Failed: Event Mismatch`);
-            console.log(`Expected (Ticket Event): '${registration.event.toString()}'`);
-            console.log(`Received (Request Event): '${eventId}'`);
-            console.log('Request Body:', JSON.stringify(req.body));
             return res.status(400).json({ message: 'Ticket does not belong to this event' });
         }
 
