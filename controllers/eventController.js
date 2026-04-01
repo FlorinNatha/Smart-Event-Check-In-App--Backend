@@ -3,13 +3,61 @@ const Event = require('../models/Event');
 const Registration = require('../models/Registration');
 const User = require('../models/User');
 
+/**
+ * Compute real-time status for an event based on current date/time.
+ * 'cancelled' is always preserved (manual override).
+ */
+function computeStatus(event) {
+    if (event.status === 'cancelled') return 'cancelled';
+
+    const now = new Date();
+    const eventDate = new Date(event.date);
+
+    // Build a start datetime: event date + startTime ("HH:mm")
+    const startDateTime = new Date(eventDate);
+    if (event.startTime) {
+        const [sh, sm] = event.startTime.split(':').map(Number);
+        startDateTime.setHours(sh, sm, 0, 0);
+    } else {
+        startDateTime.setHours(0, 0, 0, 0);
+    }
+
+    // Build an end datetime: event date + endTime ("HH:mm")
+    const endDateTime = new Date(eventDate);
+    if (event.endTime) {
+        const [eh, em] = event.endTime.split(':').map(Number);
+        endDateTime.setHours(eh, em, 59, 999);
+    } else {
+        endDateTime.setHours(23, 59, 59, 999);
+    }
+
+    if (now < startDateTime) return 'upcoming';
+    if (now >= startDateTime && now <= endDateTime) return 'ongoing';
+    return 'completed';
+}
+
 // @desc    Get all events
 // @route   GET /api/events
 // @access  Public
 exports.getEvents = async (req, res) => {
     try {
         const events = await Event.find().sort({ date: 1 });
-        res.json(events);
+
+        // Compute live registeredCount and live status for each event
+        const eventsWithCounts = await Promise.all(
+            events.map(async (event) => {
+                const count = await Registration.countDocuments({
+                    event: event._id,
+                    status: { $in: ['registered', 'checked-in'] }
+                });
+                const obj = event.toObject();
+                obj.registeredCount = count;
+                obj.status = computeStatus(obj);
+                return obj;
+            })
+        );
+
+        res.json(eventsWithCounts);
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
@@ -23,7 +71,15 @@ exports.getEventById = async (req, res) => {
         const event = await Event.findById(req.params.id).populate('organizer', 'name email');
 
         if (event) {
-            res.json(event);
+            // Always compute live registeredCount and status
+            const liveCount = await Registration.countDocuments({
+                event: event._id,
+                status: { $in: ['registered', 'checked-in'] }
+            });
+            const eventObj = event.toObject();
+            eventObj.registeredCount = liveCount;
+            eventObj.status = computeStatus(eventObj);
+            res.json(eventObj);
         } else {
             res.status(404).json({ message: 'Event not found' });
         }
@@ -215,7 +271,7 @@ exports.getAllRegistrations = async (req, res) => {
     try {
         const registrations = await Registration.find()
             .populate('user', 'name email')
-            .populate('event', 'name date')
+            .populate('event', 'name date location')
             .sort({ registeredAt: -1 });
 
         res.json(registrations);
