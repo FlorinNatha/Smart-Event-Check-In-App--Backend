@@ -39,6 +39,9 @@ exports.registerForEvent = async (req, res) => {
             registeredAt: Date.now()
         });
 
+        // 5. Increment the event's registeredCount
+        await Event.findByIdAndUpdate(eventId, { $inc: { registeredCount: 1 } });
+
         res.status(201).json(registration);
 
     } catch (error) {
@@ -111,6 +114,10 @@ exports.cancelRegistration = async (req, res) => {
         }
 
         await registration.deleteOne();
+
+        // Decrement the event's registeredCount
+        await Event.findByIdAndUpdate(registration.event, { $inc: { registeredCount: -1 } });
+
         res.json({ message: 'Registration cancelled' });
 
     } catch (error) {
