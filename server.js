@@ -32,6 +32,7 @@ app.use('/api/admin/events', require('./routes/eventRoutes'));
 
 // Attendee Routes
 app.use('/api/registrations', require('./routes/registrationRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
 
 app.get('/', (req, res) => {
