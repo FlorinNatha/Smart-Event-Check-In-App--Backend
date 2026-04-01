@@ -2,6 +2,7 @@
 const Event = require('../models/Event');
 const Registration = require('../models/Registration');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 /**
  * Compute real-time status for an event based on current date/time.
@@ -169,12 +170,38 @@ exports.updateEvent = async (req, res) => {
             if (updateData.startTime === 'null') delete updateData.startTime;
             if (updateData.endTime === 'null') delete updateData.endTime;
 
+            // --- INVALIDATION LOGIC ---
+            // If the event is being updated, we must invalidate all existing registrations
+            // as per user requirement: "they need to register updated event for again"
+            
+            const existingRegistrations = await Registration.find({ event: req.params.id });
+            
+            if (existingRegistrations.length > 0) {
+                console.log(`⚠️ Invalidating ${existingRegistrations.length} registrations for event ${event.name}`);
+                
+                // 1. Create notifications for each user
+                const notifications = existingRegistrations.map(reg => ({
+                    user: reg.user,
+                    event: event._id,
+                    message: `Important: The event "${event.name}" has been updated. Your previous registration has been cleared. Please review the new details and register again if you still wish to attend.`,
+                    type: 'event_update'
+                }));
+                
+                await Notification.insertMany(notifications);
+                
+                // 2. Delete all registrations
+                await Registration.deleteMany({ event: req.params.id });
+                
+                // 3. Reset registeredCount in update payload
+                updateData.registeredCount = 0;
+            }
+
             const updatedEvent = await Event.findByIdAndUpdate(req.params.id, updateData, {
                 new: true,
                 runValidators: true
             });
 
-            console.log('✅ Event Updated:', updatedEvent);
+            console.log('✅ Event Updated & Registrations Invalidated:', updatedEvent.name);
             res.json(updatedEvent);
         } else {
             res.status(404).json({ message: 'Event not found' });
