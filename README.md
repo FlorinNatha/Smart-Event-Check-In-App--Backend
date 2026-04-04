@@ -69,4 +69,10 @@ JWT_SECRET=your_secret_key_here
 2.  `node seed.js` (Optional, ensures you have an admin account).
 3.  `npm start`
 
-The API will be available at: `http://localhost:3000`
+---
+
+## 🚀 Future Enhancements
+- **Atomic Registration**: Transition to MongoDB transactions to handle high-concurrency booking requests safely.
+- **Dedicated Staff Role Middleware**: Add explicit validation for staff-only routes.
+- **Refresh Token Architecture**: Improve security with rotating refresh tokens and shorter access token lifespans.
+- **Advanced API Logging**: Integrate a proper logging framework (like Winston or Morgan) for structured analytics.
